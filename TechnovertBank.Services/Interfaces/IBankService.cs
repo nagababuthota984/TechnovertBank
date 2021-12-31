@@ -10,7 +10,7 @@ namespace TechnovertBank.Services
     {
         Bank CreateAndGetBank(string name, string branch, string ifsc);
         bool IsValidEmployee(string userName, string password);
-        Account CreateAndAddAccount(Account newAccount, Customer customer, Bank bank);
+        Account CreateAndAddAccount(Account newAccount, Customer customer, string bankId);
         bool DeleteAccount(Account userAccount);
         bool AddNewCurrency(Bank bank, string newName, decimal exchangeRate);
         bool ModifyServiceCharge(ModeOfTransferOptions mode, bool isSelfBankCharge, Bank bank, decimal newValue);
@@ -21,5 +21,6 @@ namespace TechnovertBank.Services
         List<Transaction> GetTransactions(string bankId);
         Bank GetBankById(string bankid);
         Currency GetCurrencyByName(string currencyName);
+        bool IsValidBank(string bankId);
     }
 }

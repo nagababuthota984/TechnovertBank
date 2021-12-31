@@ -37,7 +37,7 @@ namespace TechnovertBank.Services
         }
         public Account GetAccountByAccNumber(long accNumber)
         {
-            return dbContext.Accounts.FirstOrDefault(ac => ac.AccountNumber==accNumber);
+            return dbContext.Accounts.FirstOrDefault(ac => ac.AccountNumber.Equals(accNumber));
         }
         public Account GetAccountById(string accountId)
         {
@@ -53,7 +53,7 @@ namespace TechnovertBank.Services
         public void WithdrawAmount(Account userAccount, decimal amount)
         {
             userAccount.Balance -= amount;
-            transService.CreateTransaction(userAccount, TransactionType.Debit, amount, SessionContext.Bank.DefaultCurrencyName);
+            transService.CreateTransaction(userAccount, TransactionType.Debit, amount, "INR");//SessionContext.Bank.DefaultCurrencyName);
             dbContext.SaveChanges();
         }
         public void TransferAmount(Account senderAccount, Bank senderBank, Account receiverAccount, decimal amount, ModeOfTransferOptions mode)
@@ -63,8 +63,8 @@ namespace TechnovertBank.Services
             receiverAccount.Balance += amount;
             dbContext.Accounts.Update(mapper.Map<Account>(senderAccount));
             dbContext.Accounts.Update(mapper.Map<Account>(receiverAccount));
-            ApplyTransferCharges(senderAccount, senderBank, receiverAccount.BankId, amount, mode, SessionContext.Bank.DefaultCurrencyName);
-            transService.CreateTransferTransaction(senderAccount, receiverAccount, amount, mode, SessionContext.Bank.DefaultCurrencyName);
+            ApplyTransferCharges(senderAccount, senderBank, receiverAccount.BankId, amount, mode, "INR");//SessionContext.Bank.DefaultCurrencyName);
+            transService.CreateTransferTransaction(senderAccount, receiverAccount, amount, mode, "INR");// SessionContext.Bank.DefaultCurrencyName);
             dbContext.SaveChanges();
         }
         public void ApplyTransferCharges(Account senderAccount, Bank senderBank, string receiverBankId, decimal amount, ModeOfTransferOptions mode, string currencyName)

@@ -3,7 +3,7 @@ using TechnovertBank.Models;
 
 namespace TechnovertBank.API.ApiModels
 {
-    public class CreateAccountModel
+    public class UpdateAccountModel
     {
         public string Name { get; set; }
         public int Age { get; set; }
@@ -13,7 +13,6 @@ namespace TechnovertBank.API.ApiModels
         public string Address { get; set; }
         public long AadharNumber { get; set; }
         public string PanNumber { get; set; }
-        public AccountType AccountType { get; set; }
-        public string BankId { get; set; }
+        public string AccountId { get; set; }
     }
 }

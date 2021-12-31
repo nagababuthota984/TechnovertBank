@@ -50,6 +50,10 @@ namespace TechnovertBank.Services
                 return true;
             }
         }
+        public bool IsValidBank(string bankId)
+        {
+            return dbContext.Banks.Any(bnk => bnk.BankId.Equals(bankId));
+        }
         private void InitializeEmployeeSessionContext(Employee emp)
         {
             SessionContext.Employee = emp;
@@ -60,17 +64,31 @@ namespace TechnovertBank.Services
             dbContext.Customers.Update(mapper.Map<Customer>(customer));
             dbContext.SaveChanges();
         }
-        public Account CreateAndAddAccount(Account newAccount, Customer newCustomer, Bank bank)
+        public Account CreateAndAddAccount(Account newAccount, Customer newCustomer, string bankId)
         {
-            newAccount.BankId = bank.BankId;
-            newAccount.AccountNumber = GenerateAccountNumber();
-            newAccount.CustomerId = newCustomer.CustomerId;
-            dbContext.Accounts.Add(newAccount);
-            dbContext.Customers.Add(newCustomer);
-            dbContext.SaveChanges();
-            return dbContext.Accounts.FirstOrDefault(acc => acc.AccountId.Equals(newAccount.AccountId));
+
+            if (!IsDuplicateCustomer(newCustomer))
+            {
+                newAccount.BankId = bankId;
+                newAccount.AccountNumber = GenerateAccountNumber();
+                newAccount.CustomerId = newCustomer.CustomerId;
+                dbContext.Accounts.Add(newAccount);
+                dbContext.Customers.Add(newCustomer);
+                dbContext.SaveChanges();
+                return dbContext.Accounts.FirstOrDefault(acc => acc.AccountId.Equals(newAccount.AccountId)); 
+            }
+            else
+            {
+                throw new Exception("Customer Already exists");
+            }
 
         }
+
+        private bool IsDuplicateCustomer(Customer newCustomer)
+        {
+            return dbContext.Customers.Any(cr => cr.PanNumber.Equals(newCustomer.PanNumber));
+        }
+
         public Bank GetBankById(string bankId)
         {
             Bank bank = dbContext.Banks.FirstOrDefault(b => b.BankId.Equals(bankId));
@@ -170,16 +188,15 @@ namespace TechnovertBank.Services
         }
         private long GenerateAccountNumber()
         {
-            long lastAccNumber = dbContext.Accounts.LastOrDefault()?.AccountNumber ?? 1000;
-            if(lastAccNumber==0)
+            Account acc = dbContext.Accounts.OrderByDescending(acc => acc.AccountNumber).FirstOrDefault();
+            if (acc == null)
             {
                 return 1000;
             }
             else
             {
-                return lastAccNumber + 1;
+                return acc.AccountNumber + 35;
             }
-
         }
         
         public Currency GetCurrencyByName(string currencyName)

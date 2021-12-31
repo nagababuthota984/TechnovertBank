@@ -18,14 +18,14 @@ namespace TechnovertBank.Models
        
 
         #endregion
-        public AccountViewModel(CustomerViewModel customer, AccountType type, BankViewModel bank)
+        public AccountViewModel(CustomerViewModel customer, AccountType type, string bankId)
         {
             string nameTrimmed = String.Concat(customer.Name.Where(c => !Char.IsWhiteSpace(c)));
             this.Username = $"{nameTrimmed.Substring(0, 4)}{customer.Dob:yyyy}{DateTime.Now:ffff}";
             this.Password = $"{customer.Dob:yyyyMMdd}";
             this.AccountId = $"{customer.Name.Substring(0, 3)}{customer.Dob:yyyyMMdd}";
             this.AccountType = type;
-            this.BankId = bank.BankId;
+            this.BankId = bankId;
             this.CustomerId = customer.CustomerId;  
             this.AccountNumber = 0;
         }
