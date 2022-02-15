@@ -38,10 +38,12 @@ namespace TechnovertBank.Services
         public Account GetAccountByAccNumber(long accNumber)
         {
             return dbContext.Accounts.FirstOrDefault(ac => ac.AccountNumber.Equals(accNumber));
+           
         }
         public Account GetAccountById(string accountId)
         {
             return dbContext.Accounts.FirstOrDefault(ac => ac.AccountId.Equals(accountId));
+            
         }
         public void DepositAmount(Account userAccount, decimal amount, Currency currency)
         {
@@ -93,6 +95,11 @@ namespace TechnovertBank.Services
             dbContext.Customers.Update(updatedCustomer);
             dbContext.SaveChanges();
 
+        }
+
+        public Customer GetCustomerById(string accountId)
+        {
+            return dbContext.Customers.FirstOrDefault(cust => cust.CustomerId.Equals(accountId));
         }
     }
 }

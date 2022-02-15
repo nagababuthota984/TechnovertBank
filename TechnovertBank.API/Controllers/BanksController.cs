@@ -1,5 +1,7 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
+using System;
+using TechnovertBank.API.ApiModels;
 using TechnovertBank.Data;
 using TechnovertBank.Models;
 using TechnovertBank.Services;
@@ -19,27 +21,65 @@ namespace TechnovertBank.API.Controllers
             mapper = _mapperObj;
             bankService = _bankService;
         }
-        [HttpGet("getBankById/bankId")]
-        public BankViewModel GetBankById(string bankId)
+        [HttpGet("getBankById/{bankId}")]
+        public IActionResult GetBankById(string bankId)
         {
-            return mapper.Map<BankViewModel>(bankService.GetBankById(bankId));
+            if (!string.IsNullOrEmpty(bankId))
+            {
+                Bank bank = bankService.GetBankById(bankId);
+                if (bank != null)
+                    return Ok(mapper.Map<BankViewModel>(bank));
+                else
+                    return BadRequest("Bank with matching Id not found");
+            }
+            return BadRequest("Invalid bank Id format.Please enter a valid bankID");
         }
         [HttpPost("createBank")]
-        public void CreateBank(string name,string branch,string ifsc)
+        public IActionResult CreateBank(CreateBankModel inputBank)
         {
-            bankService.CreateAndGetBank(name, branch, ifsc);
+            try
+            {
+                return Ok(bankService.CreateAndGetBank(inputBank.Name,inputBank.Branch,inputBank.Ifsc));
+            }
+            catch(Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
         [HttpPost("addCurrency")]
-        public void AddCurrency(string currencyName, decimal exchangeRate, string bankId)
+        public IActionResult AddCurrency(CreateCurrencyModel inputCurrency) //string currencyName, decimal exchangeRate, string bankId)
         {
-            Bank bank = bankService.GetBankById(bankId);
-            bankService.AddNewCurrency(bank, currencyName, exchangeRate);
+            Bank bank = bankService.GetBankById(inputCurrency.BankId);
+            if (bank != null)
+            {
+                if(bankService.AddNewCurrency(bank, inputCurrency.CurrencyName, inputCurrency.ExchangeRate))
+                {
+                    return Ok("Currency added successfully");
+                }
+                else
+                {
+                    return BadRequest("Sorry! Unable to add currency. Please try again");
+                }
+            }
+            else
+            {
+                return BadRequest("Bank with matching id not found.");
+            }
         }
         [HttpPost("addEmployee/{bankId}")]
-        public void AddEmployee([FromBody]CustomerViewModel newCustomer,string bankId,EmployeeDesignation role)
+        public IActionResult AddEmployee(AddEmployeeModel inputEmp)//[FromBody]CustomerViewModel newCustomer,string bankId,EmployeeDesignation role)
         {
-            Bank bank = bankService.GetBankById(bankId);
-            bankService.CreateAndGetEmployee(mapper.Map<Customer>(newCustomer), role, bank);
+            Bank bank = bankService.GetBankById(inputEmp.BankId);
+            if (bank != null && inputEmp.Customer!=null)
+            {
+                Employee createdEmp = bankService.CreateAndGetEmployee(inputEmp.Customer, inputEmp.Role, bank);
+                if (createdEmp != null)
+                    return Ok(createdEmp);
+                else
+                    return BadRequest("Employee not created. Please try again!");
+            }
+            else
+                return BadRequest("Bank with matching id not found.Please provide valid details of the customer.");
         }
     }
 }

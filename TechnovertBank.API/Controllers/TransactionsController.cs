@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
+using TechnovertBank.Data;
 using TechnovertBank.Models;
 using TechnovertBank.Services;
 
@@ -26,25 +27,73 @@ namespace BankAppDbFirstApproach.API.Controllers
             transactionService = transService;
         }
         [HttpGet("getTransByAcc/{accountId}")]
-        public List<TransactionViewModel> GetTransByAcc(string accountId)
+        public IActionResult GetTransByAcc(string accountId)
         {
-            return mapper.Map<List<TransactionViewModel>>(bankService.GetAccountTransactions(accountId));
+            try
+            {
+                List<Transaction> transactions = bankService.GetAccountTransactions(accountId);
+                if(transactions != null)
+                {
+                    return Ok(mapper.Map<List<TransactionViewModel>>(transactions));
+                }
+                else
+                {
+                    return BadRequest("Account with matching id not found");
+                }
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
 
         [HttpGet("getTransById/{transId}")]
-        public TransactionViewModel GetTransById(string transactionId)
+        public IActionResult GetTransById(string transactionId)
         {
-            return mapper.Map<TransactionViewModel>(transactionService.GetTransactionById(transactionId));
+            try
+            {
+                Transaction trans = transactionService.GetTransactionById(transactionId);
+                if (trans != null)
+                    return Ok(mapper.Map<TransactionViewModel>(trans));
+                else
+                    return BadRequest("Transaction with matching id not found");
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
         [HttpGet("getTransByDate/{date}")]
-        public List<TransactionViewModel> GetTransactionByDate(DateTime date,string bankId)
+        public IActionResult GetTransactionByDate(DateTime date,string bankId)
         {
-            return mapper.Map<List<TransactionViewModel>>(bankService.GetTransactionsByDate(date,bankId));
+            try
+            {
+                List<Transaction> transactions = bankService.GetTransactionsByDate(date, bankId);
+                if (transactions != null)
+                    return Ok(mapper.Map<TransactionViewModel>(transactions));
+                else
+                    return BadRequest("Transactions with matching date not found");
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
         [HttpGet("getBankTrans/{bankId}")]
-        public List<TransactionViewModel> GetTransactionsOfBank(string bankId)
+        public IActionResult GetTransactionsOfBank(string bankId)
         {
-            return mapper.Map<List<TransactionViewModel>>(bankService.GetTransactions(bankId));
+            try
+            {
+                List<Transaction> transactions = bankService.GetTransactions(bankId);
+                if (transactions != null)
+                    return Ok(mapper.Map<List<TransactionViewModel>>(transactions));
+                else
+                    return BadRequest("Transactions with matching bankid not found");
+            }
+            catch(Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
 
     }

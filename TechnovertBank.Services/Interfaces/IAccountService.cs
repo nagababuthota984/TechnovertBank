@@ -16,5 +16,6 @@ namespace TechnovertBank.Services
         void ApplyTransferCharges(Account senderAccount, Bank senderBank, string receiverBankId, decimal amount, ModeOfTransferOptions mode, string currencyName);
         List<Account> GetAllAccounts();
         void UpdateAccount(Customer customer);
+        Customer GetCustomerById(string accountId);
     }
 }

@@ -1,15 +1,16 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using TechnovertBank.API.ApiModels;
+using TechnovertBank.API.Authentication;
 using TechnovertBank.Data;
 using TechnovertBank.Models;
 using TechnovertBank.Services;
 
-// For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
 namespace TechnovertBank.API.Controllers
 {
@@ -20,20 +21,34 @@ namespace TechnovertBank.API.Controllers
         private readonly IAccountService _accountService;
         private readonly IBankService _bankService;
         private readonly IMapper _mapper;
+        private readonly UserManager<BankUser> userManager;
+        private readonly SignInManager<BankUser> signInManager;
+         
 
-        public AccountsController(IAccountService accService, IBankService bankService, IMapper mapper)
+        public AccountsController(IAccountService accService, IBankService bankService, IMapper mapper,UserManager<BankUser> manager,SignInManager<BankUser> smanager)
         {
             _accountService = accService;
             _bankService = bankService;
             _mapper = mapper;
+            userManager = manager;
+            signInManager = smanager;
         }
 
         [HttpGet]
         public IActionResult GetAllAccounts()
         {
-            return Ok(_mapper.Map<List<AccountViewModel>>(_accountService.GetAllAccounts()));
+            try
+            {
+                return Ok(_mapper.Map<List<AccountViewModel>>(_accountService.GetAllAccounts()));
+
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }        
         }
         [HttpGet("getAccountById/{id}")]
+        [Authorize(Roles = UserRoles.Admin)]
         public IActionResult GetAccountById(string id)
         {
             AccountViewModel account = _mapper.Map<AccountViewModel>(_accountService.GetAccountById(id));
@@ -43,9 +58,9 @@ namespace TechnovertBank.API.Controllers
                 return NotFound("Account with matching id not found");
         }
         [HttpGet("getAccountByAccNum/{accNumber}")]
-        public IActionResult GetAccountByAccNum(string accNumber)         
+        public IActionResult GetAccountByAccNum(string accNumber)
         {
-            if (long.TryParse(accNumber,out long accountNumber))
+            if (long.TryParse(accNumber, out long accountNumber))
             {
                 AccountViewModel account = _mapper.Map<AccountViewModel>(_accountService.GetAccountByAccNumber(accountNumber));
                 if (account != null)
@@ -54,7 +69,7 @@ namespace TechnovertBank.API.Controllers
                     return NotFound("Account with matching Account Number not found");
             }
             else
-                return BadRequest("Account number should not contain letters/special characters. Please enter a valid Account Number");
+                return BadRequest("Account number should not contain letters or special characters. Please enter a valid Account Number");
         }
         [HttpPost("createAccount")]
         public IActionResult CreateAccount(CreateAccountModel inputDetails)
@@ -117,7 +132,7 @@ namespace TechnovertBank.API.Controllers
                     if (inputDetails.Amount > 0)
                     {
                         _accountService.DepositAmount(account, inputDetails.Amount, curr);
-                        return Ok();
+                        return Ok("Deposited Successfully!");
                     }
                     else
                         return BadRequest("Depositing amount should be greater than 0.");
@@ -131,53 +146,67 @@ namespace TechnovertBank.API.Controllers
         [HttpPut("withdraw")]
         public IActionResult Withdraw(UpdateBalanceModel inputDetails)
         {
-            Account account = _accountService.GetAccountById(inputDetails.AccountId);
-            if (account != null)
+            if (!string.IsNullOrEmpty(inputDetails.AccountId))
             {
-                if (inputDetails.Amount > 0)
-                {
-                    if (inputDetails.Amount <= account.Balance)
-                    {
-                        _accountService.WithdrawAmount(account, inputDetails.Amount);
-                        return Ok("Withdrawn successfully!");
-                    }
-                    else
-                        return BadRequest("Insufficient funds.");
-                }
-                else
-                    return BadRequest("Withdrawl amount should be greater than 0.");
-            }
-            else
-                return NotFound("Account with matching Id not found");
-        }
-        [HttpPut("transfer")]
-        public IActionResult Transfer(TransferAmountModel inputDetails)
-        {
-            Account senderAccount = _accountService.GetAccountById(inputDetails.SenderAccountId);
-            if (senderAccount != null)
-            {
-                Account receiverAccount = _accountService.GetAccountByAccNumber(inputDetails.ReceiverAccountNumber);// check this (acc not returning)
-                if (receiverAccount != null)
+                Account account = _accountService.GetAccountById(inputDetails.AccountId);
+                if (account != null)
                 {
                     if (inputDetails.Amount > 0)
                     {
-                        if (inputDetails.Amount >= senderAccount.Balance)
+                        if (inputDetails.Amount <= account.Balance)
                         {
-                            Bank senderBank = _bankService.GetBankById(senderAccount.BankId);
-                            _accountService.TransferAmount(senderAccount, senderBank, receiverAccount, inputDetails.Amount, inputDetails.Mode);
-                            return Ok("Amount transferred successfully");
+                            _accountService.WithdrawAmount(account, inputDetails.Amount);
+                            return Ok("Withdrawn successfully!");
                         }
                         else
                             return BadRequest("Insufficient funds.");
                     }
                     else
-                        return BadRequest("Amount should be greater than 0.");
+                        return BadRequest("Withdrawl amount should be greater than 0.");
                 }
                 else
-                    return NotFound("Receiver Account with matching Account Number not found");
+                    return NotFound("Account with matching Id not found");
             }
             else
-                return NotFound("Account with matching Account Number not found");
+            {
+                return BadRequest("Invalid account Id. Please provide a valid accountId");
+            }
+        }
+        [HttpPut("transfer")]
+        public IActionResult Transfer(TransferAmountModel inputDetails)
+        {
+            if (!string.IsNullOrEmpty(inputDetails.SenderAccountId))
+            {
+                Account senderAccount = _accountService.GetAccountById(inputDetails.SenderAccountId);
+                if (senderAccount != null)
+                {
+                    Account receiverAccount = _accountService.GetAccountByAccNumber(inputDetails.ReceiverAccountNumber);// check this (acc not returning)
+                    if (receiverAccount != null)
+                    {
+                        if (inputDetails.Amount > 0)
+                        {
+                            if (inputDetails.Amount <= senderAccount.Balance)
+                            {
+                                Bank senderBank = _bankService.GetBankById(senderAccount.BankId);
+                                _accountService.TransferAmount(senderAccount, senderBank, receiverAccount, inputDetails.Amount, inputDetails.Mode);
+                                return Ok("Amount transferred successfully");
+                            }
+                            else
+                                return BadRequest("Insufficient funds.");
+                        }
+                        else
+                            return BadRequest("Amount should be greater than 0.");
+                    }
+                    else
+                        return NotFound("Receiver Account with matching Account Number not found");
+                }
+                else
+                    return NotFound("Account with matching Account Number not found");
+            }
+            else
+            {
+                return BadRequest("Invalid account Id format");
+            }
         }
     }
 }
