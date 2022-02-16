@@ -25,25 +25,26 @@ namespace TechnovertBank.API.Controllers
         public IActionResult Deposit(UpdateBalanceModel inputDetails)
         {
 
-            Account account = _accountService.GetAccountById(inputDetails.AccountId);
-            if (account != null)
+            if (!string.IsNullOrEmpty(inputDetails.AccountId) && !string.IsNullOrEmpty(inputDetails.CurrencyName))
             {
-                Currency curr = _bankService.GetCurrencyByName(inputDetails.CurrencyName);
-                if (curr != null)
+                Account account = _accountService.GetAccountById(inputDetails.AccountId);
+                if (account != null)
                 {
-                    if (inputDetails.Amount > 0)
+                    Currency curr = _bankService.GetCurrencyByName(inputDetails.CurrencyName);
+                    if (curr != null)
                     {
-                        _accountService.DepositAmount(account, inputDetails.Amount, curr);
-                        return Ok("Deposited Successfully!");
-                    }
-                    else
+                        if (inputDetails.Amount > 0)
+                        {
+                            _accountService.DepositAmount(account, inputDetails.Amount, curr);
+                            return Ok("Deposited Successfully!");
+                        }
                         return BadRequest("Depositing amount should be greater than 0.");
-                }
-                else
+                    }
                     return NotFound("Currency with matching name not found.");
-            }
-            else
+                }
                 return NotFound("Account with matching Id not found.Please provide a valid account ID");
+            }
+            return BadRequest("Invalid details.");
         }
         [HttpPut("withdraw")]
         public IActionResult Withdraw(UpdateBalanceModel inputDetails)
@@ -82,7 +83,7 @@ namespace TechnovertBank.API.Controllers
                 Account senderAccount = _accountService.GetAccountById(inputDetails.SenderAccountId);
                 if (senderAccount != null)
                 {
-                    Account receiverAccount = _accountService.GetAccountByAccNumber(inputDetails.ReceiverAccountNumber);// check this (acc not returning)
+                    Account receiverAccount = _accountService.GetAccountByAccNumber(inputDetails.ReceiverAccountNumber);
                     if (receiverAccount != null)
                     {
                         if (inputDetails.Amount > 0)

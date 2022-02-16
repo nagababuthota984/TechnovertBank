@@ -20,24 +20,40 @@ namespace TechnovertBank.Services
         }
         public Bank CreateAndGetBank(string name, string branch, string ifsc)
         {
-            BankViewModel newBank = new BankViewModel(name, branch, ifsc);
-            CurrencyViewModel currency = new CurrencyViewModel("INR", 1, newBank.BankId);
-            CustomerViewModel customer = new CustomerViewModel("Admin", newBank.BankId);
-            EmployeeViewModel employee = new EmployeeViewModel(newBank.BankId, "Admin", "admin", customer.CustomerId);
-            dbContext.Banks.Add(mapper.Map<Bank>(newBank));
-            dbContext.Customers.Add(mapper.Map<Customer>(customer));
-            dbContext.Currencies.Add(mapper.Map<Currency>(currency));
-            dbContext.Employees.Add(mapper.Map<Employee>(employee));
-            dbContext.SaveChanges();
-            return mapper.Map<Bank>(newBank);
+            try
+            {
+                BankViewModel newBank = new BankViewModel(name, branch, ifsc);
+                CurrencyViewModel currency = new CurrencyViewModel("INR", 1, newBank.BankId);
+                CustomerViewModel customer = new CustomerViewModel("Admin", newBank.BankId);
+                EmployeeViewModel employee = new EmployeeViewModel(newBank.BankId, "Admin", "admin", customer.CustomerId);
+                dbContext.Banks.Add(mapper.Map<Bank>(newBank));
+                dbContext.Customers.Add(mapper.Map<Customer>(customer));
+                dbContext.Currencies.Add(mapper.Map<Currency>(currency));
+                dbContext.Employees.Add(mapper.Map<Employee>(employee));
+                dbContext.SaveChanges();
+                return dbContext.Banks.FirstOrDefault(bn => bn.BankId.Equals(newBank.BankId));
+            }
+            catch (Exception e)
+            {
+
+                throw new Exception(e.Message);
+            }
         }
         public Employee CreateAndGetEmployee(Customer newCustomer, EmployeeDesignation role, Bank bank)
         {
-            EmployeeViewModel employee = new EmployeeViewModel(mapper.Map<CustomerViewModel>(newCustomer), role, mapper.Map<BankViewModel>(bank));
-            dbContext.Customers.Add(mapper.Map<Customer>(newCustomer));
-            dbContext.Employees.Add(mapper.Map<Employee>(employee));
-            dbContext.SaveChanges();
-            return mapper.Map<Employee>(employee);
+            if (!IsDuplicateCustomer(newCustomer))
+            {
+                EmployeeViewModel employee = new EmployeeViewModel(mapper.Map<CustomerViewModel>(newCustomer), role, mapper.Map<BankViewModel>(bank));
+                dbContext.Customers.Add(mapper.Map<Customer>(newCustomer));
+                dbContext.Employees.Add(mapper.Map<Employee>(employee));
+                dbContext.SaveChanges();
+                return mapper.Map<Employee>(employee); 
+            }
+            else
+            {
+                throw new Exception("A customer with similar details already exists");
+            }
+
         }
         public bool IsValidEmployee(string userName, string password)
         {

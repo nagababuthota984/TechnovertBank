@@ -1,9 +1,13 @@
-﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
 namespace TechnovertBank.API.Authentication
 {
-    public class BankIdentityDbContext :IdentityDbContext<BankUser>
+    /// <summary>
+    /// It adds and manages users and roles related tables to the database. Inherits IdentityDbContext instead of DbContext.
+    /// </summary>
+    public class BankIdentityDbContext :IdentityDbContext<IdentityUser>
     {
         public BankIdentityDbContext()
         {

@@ -1,4 +1,4 @@
-using AutoMapper;
+
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
@@ -42,7 +42,7 @@ namespace TechnovertBank.API
             services.AddScoped<ITransactionService, TransactionService>();
             services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
-            services.AddIdentity<BankUser, IdentityRole>()
+            services.AddIdentity<IdentityUser, IdentityRole>()
                 .AddEntityFrameworkStores<BankIdentityDbContext>()
                 .AddDefaultTokenProviders();
             services.AddAuthentication(options =>

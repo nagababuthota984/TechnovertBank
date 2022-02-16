@@ -20,20 +20,16 @@ namespace TechnovertBank.API.Controllers
         private readonly IAccountService _accountService;
         private readonly IBankService _bankService;
         private readonly IMapper _mapper;
-        private readonly UserManager<BankUser> userManager;
-        private readonly SignInManager<BankUser> signInManager;
         private readonly IAccountService accountService;
         private readonly ITransactionService transactionService;
 
 
 
-        public AdminController(IAccountService accService, ITransactionService transService, IBankService bankService, IMapper mapper, UserManager<BankUser> manager, SignInManager<BankUser> smanager)
+        public AdminController(IAccountService accService, ITransactionService transService, IBankService bankService, IMapper mapper, UserManager<IdentityUser> manager, SignInManager<IdentityUser> smanager)
         {
             _accountService = accService;
             _bankService = bankService;
             _mapper = mapper;
-            userManager = manager;
-            signInManager = smanager;
             accountService = accService;
             transactionService = transService;
         }
@@ -76,7 +72,6 @@ namespace TechnovertBank.API.Controllers
                 return BadRequest("Account number should not contain letters or special characters. Please enter a valid Account Number");
         }
         [HttpPost("createAccount")]
-        [Authorize(Roles = UserRoles.Admin)]
         public IActionResult CreateAccount(CreateAccountModel inputDetails)
         {
             try
@@ -111,17 +106,21 @@ namespace TechnovertBank.API.Controllers
                 return BadRequest(ex.Message);
             }
         }
-        [HttpDelete("deleteAcc/{id}")]
+        [HttpDelete("deleteAccount/{id}")]
         public IActionResult Delete(string id)
         {
-            Account acc = _accountService.GetAccountById(id);
-            if (acc != null)
+            if (!string.IsNullOrEmpty(id))
             {
-                _bankService.DeleteAccount(acc);
-                return Ok("Account has been deleted");
+                Account acc = _accountService.GetAccountById(id);
+                if (acc != null)
+                {
+                    _bankService.DeleteAccount(acc);
+                    return Ok("Account has been deleted");
+                }
+                else
+                    return NotFound("Account with matching id not found.Please provide a valid Account ID"); 
             }
-            else
-                return NotFound("Account with matching id not found.Please provide a valid Account ID");
+            return BadRequest("Invalid bank Id format.Please enter a valid Account ID");
         }
         [HttpGet("getBankById/{bankId}")]
         public IActionResult GetBankById(string bankId)
@@ -141,7 +140,12 @@ namespace TechnovertBank.API.Controllers
         {
             try
             {
-                return Ok(_bankService.CreateAndGetBank(inputBank.Name, inputBank.Branch, inputBank.Ifsc));
+                Bank bank = _bankService.CreateAndGetBank(inputBank.Name, inputBank.Branch, inputBank.Ifsc);
+                if(bank==null)
+                {
+                    return BadRequest("Couldn't create bank. Please provide valid details and try again");
+                }
+                return Ok(bank);
             }
             catch (Exception ex)
             {
@@ -149,7 +153,7 @@ namespace TechnovertBank.API.Controllers
             }
         }
         [HttpPost("addCurrency")]
-        public IActionResult AddCurrency(CreateCurrencyModel inputCurrency) //string currencyName, decimal exchangeRate, string bankId)
+        public IActionResult AddCurrency(CreateCurrencyModel inputCurrency) 
         {
             Bank bank = _bankService.GetBankById(inputCurrency.BankId);
             if (bank != null)
@@ -160,7 +164,7 @@ namespace TechnovertBank.API.Controllers
                 }
                 else
                 {
-                    return BadRequest("Sorry! Unable to add currency. Please try again");
+                    return BadRequest("Currency already exists!");
                 }
             }
             else
@@ -169,19 +173,26 @@ namespace TechnovertBank.API.Controllers
             }
         }
         [HttpPost("addEmployee/{bankId}")]
-        public IActionResult AddEmployee(AddEmployeeModel inputEmp)//[FromBody]CustomerViewModel newCustomer,string bankId,EmployeeDesignation role)
+        public IActionResult AddEmployee(AddEmployeeModel inputEmp)
         {
-            Bank bank = _bankService.GetBankById(inputEmp.BankId);
-            if (bank != null && inputEmp.Customer != null)
+            try
             {
-                Employee createdEmp = _bankService.CreateAndGetEmployee(inputEmp.Customer, inputEmp.Role, bank);
-                if (createdEmp != null)
-                    return Ok(createdEmp);
+                Bank bank = _bankService.GetBankById(inputEmp.BankId);
+                if (bank != null && inputEmp.Customer != null)
+                {
+                    Employee createdEmp = _bankService.CreateAndGetEmployee(inputEmp.Customer, inputEmp.Role, bank);
+                    if (createdEmp != null)
+                        return Ok(createdEmp);
+                    else
+                        return BadRequest("Employee not created. Please try again!");
+                }
                 else
-                    return BadRequest("Employee not created. Please try again!");
+                    return BadRequest("Bank with matching id not found.Please provide valid details of the customer.");
             }
-            else
-                return BadRequest("Bank with matching id not found.Please provide valid details of the customer.");
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
         }
         [HttpGet("getCustomerById/{id}")]
         public IActionResult GetCustomerById(string id)
@@ -191,11 +202,9 @@ namespace TechnovertBank.API.Controllers
                 Customer customer = accountService.GetCustomerById(id);
                 if (customer != null)
                     return Ok(customer);
-                else
-                    return BadRequest("Customer with matching id not found");
+                return BadRequest("Customer with matching id not found");
             }
-            else
-                return BadRequest("Please provide a valid customer id");
+            return BadRequest("Please provide a valid customer id");
         }
         [HttpGet("getTransById/{transId}")]
         public IActionResult GetTransById(string transactionId)
@@ -205,8 +214,7 @@ namespace TechnovertBank.API.Controllers
                 Transaction trans = transactionService.GetTransactionById(transactionId);
                 if (trans != null)
                     return Ok(_mapper.Map<TransactionViewModel>(trans));
-                else
-                    return BadRequest("Transaction with matching id not found");
+                return BadRequest("Transaction with matching id not found");
             }
             catch (Exception ex)
             {

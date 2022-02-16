@@ -21,9 +21,9 @@ namespace TechnovertBank.API.Controllers
     public class AuthenticationController : ControllerBase
     {
         private readonly IConfiguration configuration;
-        private readonly UserManager<BankUser> userManager;
+        private readonly UserManager<IdentityUser> userManager;
         private readonly RoleManager<IdentityRole> roleManager;
-        public AuthenticationController(IConfiguration _conf, UserManager<BankUser> manager,RoleManager<IdentityRole> rolemngr)
+        public AuthenticationController(IConfiguration _conf, UserManager<IdentityUser> manager,RoleManager<IdentityRole> rolemngr)
         {
             configuration = _conf;
             userManager = manager;
@@ -74,7 +74,7 @@ namespace TechnovertBank.API.Controllers
             if (userExists != null)
                 return StatusCode(StatusCodes.Status500InternalServerError, new Response { Status = "Error", Message = "User already exists!" });
 
-            BankUser user = new BankUser()
+            IdentityUser user = new IdentityUser()
             {
                 Email = model.Email,
                 SecurityStamp = Guid.NewGuid().ToString(),
@@ -94,7 +94,7 @@ namespace TechnovertBank.API.Controllers
             if (userExists != null)
                 return StatusCode(StatusCodes.Status500InternalServerError, new Response { Status = "Error", Message = "User already exists!" });
 
-            BankUser user = new BankUser()
+            IdentityUser user = new IdentityUser()
             {
                 Email = model.Email,
                 SecurityStamp = Guid.NewGuid().ToString(),
