@@ -102,7 +102,7 @@ namespace TechnovertBank.API.Controllers
             try
             {
                 Customer customerModel = _mapper.Map<Customer>(updatedCustomerDetails);
-                _accountService.UpdateAccount(_mapper.Map<Customer>(customerModel));
+                _accountService.UpdateAccount(customerModel);
                 return Ok("Customer details updated successfully");
             }
             catch (Exception ex)

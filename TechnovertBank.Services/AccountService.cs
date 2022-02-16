@@ -92,7 +92,12 @@ namespace TechnovertBank.Services
         }
         public void UpdateAccount(Customer updatedCustomer)
         {
-            dbContext.Customers.Update(updatedCustomer);
+            Customer originalCustomer = dbContext.Customers.FirstOrDefault(cus=>cus.AadharNumber==updatedCustomer.AadharNumber);
+            foreach (var property in typeof(Customer).GetProperties())
+            {
+                if(property.GetValue(updatedCustomer)!=null)
+                    property.SetValue(originalCustomer, property.GetValue(updatedCustomer));
+            }
             dbContext.SaveChanges();
 
         }

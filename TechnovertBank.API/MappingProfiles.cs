@@ -24,7 +24,7 @@ namespace TechnovertBank.API
             CreateMap<Transaction, TransactionViewModel>();
 
             CreateMap<CreateAccountModel, CustomerViewModel>();
-            CreateMap<UpdateAccountModel, CustomerViewModel>();
+            CreateMap<UpdateAccountModel, Customer>();
         }
     }
 }
