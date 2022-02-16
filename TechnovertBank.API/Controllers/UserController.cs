@@ -1,124 +1,26 @@
-﻿using AutoMapper;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Newtonsoft.Json.Linq;
-using System;
-using System.Collections.Generic;
 using TechnovertBank.API.ApiModels;
 using TechnovertBank.API.Authentication;
 using TechnovertBank.Data;
-using TechnovertBank.Models;
 using TechnovertBank.Services;
-
 
 namespace TechnovertBank.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class AccountsController : ControllerBase
+    [Authorize(Roles=UserRoles.User)]
+    public class UserController : ControllerBase
     {
         private readonly IAccountService _accountService;
         private readonly IBankService _bankService;
-        private readonly IMapper _mapper;
-        private readonly UserManager<BankUser> userManager;
-        private readonly SignInManager<BankUser> signInManager;
-         
-
-        public AccountsController(IAccountService accService, IBankService bankService, IMapper mapper,UserManager<BankUser> manager,SignInManager<BankUser> smanager)
+        public UserController(IAccountService accService,IBankService bnkService)
         {
             _accountService = accService;
-            _bankService = bankService;
-            _mapper = mapper;
-            userManager = manager;
-            signInManager = smanager;
+            _bankService = bnkService;
         }
 
-        [HttpGet]
-        public IActionResult GetAllAccounts()
-        {
-            try
-            {
-                return Ok(_mapper.Map<List<AccountViewModel>>(_accountService.GetAllAccounts()));
-
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(ex.Message);
-            }        
-        }
-        [HttpGet("getAccountById/{id}")]
-        [Authorize(Roles = UserRoles.Admin)]
-        public IActionResult GetAccountById(string id)
-        {
-            AccountViewModel account = _mapper.Map<AccountViewModel>(_accountService.GetAccountById(id));
-            if (account != null)
-                return Ok(account);
-            else
-                return NotFound("Account with matching id not found");
-        }
-        [HttpGet("getAccountByAccNum/{accNumber}")]
-        public IActionResult GetAccountByAccNum(string accNumber)
-        {
-            if (long.TryParse(accNumber, out long accountNumber))
-            {
-                AccountViewModel account = _mapper.Map<AccountViewModel>(_accountService.GetAccountByAccNumber(accountNumber));
-                if (account != null)
-                    return Ok(account);
-                else
-                    return NotFound("Account with matching Account Number not found");
-            }
-            else
-                return BadRequest("Account number should not contain letters or special characters. Please enter a valid Account Number");
-        }
-        [HttpPost("createAccount")]
-        public IActionResult CreateAccount(CreateAccountModel inputDetails)
-        {
-            try
-            {
-                CustomerViewModel customer = _mapper.Map<CustomerViewModel>(inputDetails);
-                if (!string.IsNullOrEmpty(inputDetails.BankId) && _bankService.IsValidBank(inputDetails.BankId))
-                {
-                    AccountViewModel newAccount = new AccountViewModel(customer, inputDetails.AccountType, inputDetails.BankId);
-                    Account createdAccount = _bankService.CreateAndAddAccount(_mapper.Map<Account>(newAccount), _mapper.Map<Customer>(customer), inputDetails.BankId);
-                    return Ok(_mapper.Map<AccountViewModel>(createdAccount));
-                }
-                else
-                    return NotFound("Bank with matching id not found.Please give valid bank id.");
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(ex.Message);
-            }
-        }
-        [HttpPut("updateCustomer")]
-        public IActionResult UpdateAccount(UpdateAccountModel updatedCustomerDetails)
-        {
-            try
-            {
-                CustomerViewModel customerModel = _mapper.Map<CustomerViewModel>(updatedCustomerDetails);
-                _accountService.UpdateAccount(_mapper.Map<Customer>(customerModel));
-                return Ok("Customer details updated successfully");
-            }
-            catch (Exception ex)
-            {
-
-                return BadRequest(ex.Message);
-            }
-        }
-        [HttpDelete("deleteAcc/{id}")]
-        public IActionResult Delete(string id)
-        {
-            Account acc = _accountService.GetAccountById(id);
-            if (acc != null)
-            {
-                _bankService.DeleteAccount(acc);
-                return Ok("Account has been deleted");
-            }
-            else
-                return NotFound("Account with matching id not found.Please provide a valid Account ID");
-
-        }
         [HttpPut("deposit")]
         public IActionResult Deposit(UpdateBalanceModel inputDetails)
         {
@@ -208,5 +110,6 @@ namespace TechnovertBank.API.Controllers
                 return BadRequest("Invalid account Id format");
             }
         }
+
     }
 }
