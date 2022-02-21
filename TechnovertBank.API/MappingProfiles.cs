@@ -13,8 +13,8 @@ namespace TechnovertBank.API
             CreateMap<AccountViewModel, Account>();
             CreateMap<Account, AccountViewModel>();
             CreateMap<BankViewModel, Bank>();
+            throw new Exception("hello there");
             CreateMap<Bank, BankViewModel>();
-            CreateMap<Employee, Employee>();
             CreateMap<Employee, Employee>();
             CreateMap<CurrencyViewModel, Currency>();
             CreateMap<Currency, CurrencyViewModel>();

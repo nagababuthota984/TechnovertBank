@@ -36,15 +36,15 @@ namespace TechnovertBank.API.Controllers
                         if (inputDetails.Amount > 0)
                         {
                             _accountService.DepositAmount(account, inputDetails.Amount, curr);
-                            return Ok("Deposited Successfully!");
+                            return Ok(Constant.DepositSuccess);
                         }
-                        return BadRequest("Depositing amount should be greater than 0.");
+                        return BadRequest(Constant.AmountMustAboveZero);
                     }
-                    return NotFound("Currency with matching name not found.");
+                    return NotFound(Constant.CurrencyWithMatchingNameNotFound);
                 }
-                return NotFound("Account with matching Id not found.Please provide a valid account ID");
+                return NotFound(Constant.AccountWithIdNotFound);
             }
-            return BadRequest("Invalid details.");
+            return BadRequest(Constant.InvalidAccountIdFormat);
         }
         [HttpPut("withdraw")]
         public IActionResult Withdraw(UpdateBalanceModel inputDetails)
@@ -59,20 +59,20 @@ namespace TechnovertBank.API.Controllers
                         if (inputDetails.Amount <= account.Balance)
                         {
                             _accountService.WithdrawAmount(account, inputDetails.Amount);
-                            return Ok("Withdrawn successfully!");
+                            return Ok(Constant.WithdrawlSuccess);
                         }
                         else
-                            return BadRequest("Insufficient funds.");
+                            return BadRequest(Constant.InsufficientFunds);
                     }
                     else
-                        return BadRequest("Withdrawl amount should be greater than 0.");
+                        return BadRequest(Constant.AmountMustAboveZero);
                 }
                 else
-                    return NotFound("Account with matching Id not found");
+                    return NotFound(Constant.AccountWithIdNotFound);
             }
             else
             {
-                return BadRequest("Invalid account Id. Please provide a valid accountId");
+                return BadRequest(Constant.InvalidAccountIdFormat);
             }
         }
         [HttpPut("transfer")]
@@ -92,23 +92,23 @@ namespace TechnovertBank.API.Controllers
                             {
                                 Bank senderBank = _bankService.GetBankById(senderAccount.BankId);
                                 _accountService.TransferAmount(senderAccount, senderBank, receiverAccount, inputDetails.Amount, inputDetails.Mode);
-                                return Ok("Amount transferred successfully");
+                                return Ok(Constant.AmountTransferSuccess);
                             }
                             else
-                                return BadRequest("Insufficient funds.");
+                                return BadRequest(Constant.InsufficientFunds);
                         }
                         else
-                            return BadRequest("Amount should be greater than 0.");
+                            return BadRequest(Constant.AmountMustAboveZero);
                     }
                     else
-                        return NotFound("Receiver Account with matching Account Number not found");
+                        return NotFound($"Receiver {Constant.AccountWithNumNotFound}");
                 }
                 else
-                    return NotFound("Account with matching Account Number not found");
+                    return NotFound(Constant.AccountWithNumNotFound);
             }
             else
             {
-                return BadRequest("Invalid account Id format");
+                return BadRequest(Constant.InvalidAccountIdFormat);
             }
         }
 
