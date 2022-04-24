@@ -50,7 +50,7 @@ namespace TechnovertBank.Services
         }
         public Transaction GetTransactionById(string transactionId)
         {
-            return dbContext.Transactions.FirstOrDefault(tr => tr.TransId.Equals(transactionId));
+            return dbContext.Transactions.FirstOrDefault(tr => tr.TransId.Equals(transactionId,System.StringComparison.OrdinalIgnoreCase));
         }
     }
 }

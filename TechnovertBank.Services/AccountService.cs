@@ -1,6 +1,5 @@
 ﻿
 using AutoMapper;
-using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using System.Linq;
 using TechnovertBank.Data;
@@ -71,7 +70,7 @@ namespace TechnovertBank.Services
         }
         public void ApplyTransferCharges(Account senderAccount, Bank senderBank, string receiverBankId, decimal amount, ModeOfTransferOptions mode, string currencyName)
         {
-            decimal charges = 0;
+            decimal charges;
             if (mode == ModeOfTransferOptions.RTGS)
             {
                 charges = senderAccount.BankId.Equals(receiverBankId) ? (senderBank.SelfRtgs * amount) / 100 : (senderBank.OtherRtgs * amount) / 100;

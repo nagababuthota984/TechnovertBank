@@ -47,7 +47,7 @@ namespace TechnovertBank.Services
                 dbContext.Customers.Add(mapper.Map<Customer>(newCustomer));
                 dbContext.Employees.Add(mapper.Map<Employee>(employee));
                 dbContext.SaveChanges();
-                return mapper.Map<Employee>(employee); 
+                return mapper.Map<Employee>(employee);
             }
             else
             {
@@ -91,7 +91,7 @@ namespace TechnovertBank.Services
                 dbContext.Accounts.Add(newAccount);
                 dbContext.Customers.Add(newCustomer);
                 dbContext.SaveChanges();
-                return dbContext.Accounts.FirstOrDefault(acc => acc.AccountId.Equals(newAccount.AccountId)); 
+                return dbContext.Accounts.FirstOrDefault(acc => acc.AccountId.Equals(newAccount.AccountId));
             }
             else
             {
@@ -102,13 +102,12 @@ namespace TechnovertBank.Services
 
         private bool IsDuplicateCustomer(Customer newCustomer)
         {
-            return dbContext.Customers.Any(cr => cr.PanNumber.Equals(newCustomer.PanNumber));
+            return dbContext.Customers.Any(cr => cr.PanNumber.Equals(newCustomer.PanNumber, StringComparison.OrdinalIgnoreCase));
         }
 
         public Bank GetBankById(string bankId)
         {
-            Bank bank = dbContext.Banks.FirstOrDefault(b => b.BankId.Equals(bankId));
-            return bank;
+            return dbContext.Banks.FirstOrDefault(b => b.BankId.Equals(bankId, StringComparison.OrdinalIgnoreCase));
         }
         public List<Transaction> GetTransactionsByDate(DateTime date, string bankId)
         {
@@ -176,7 +175,7 @@ namespace TechnovertBank.Services
                 dbContext.SaveChanges();
                 return true;
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 throw ex;
             }
@@ -206,18 +205,13 @@ namespace TechnovertBank.Services
         {
             Account acc = dbContext.Accounts.OrderByDescending(acc => acc.AccountNumber).FirstOrDefault();
             if (acc == null)
-            {
                 return 1000;
-            }
             else
-            {
                 return acc.AccountNumber + 35;
-            }
         }
-        
         public Currency GetCurrencyByName(string currencyName)
         {
-            return dbContext.Currencies.FirstOrDefault(cr=>cr.Name==currencyName);
+            return dbContext.Currencies.FirstOrDefault(cr => cr.Name.Equals(currencyName, StringComparison.OrdinalIgnoreCase));
         }
     }
 }
