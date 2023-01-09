@@ -7,14 +7,23 @@ namespace TechnovertBank.Models
     public partial class CustomerViewModel
     {
         public string CustomerId { get; set; }
+
         public string Name { get; set; }
+
         public int Age { get; set; }
+
         public GenderOptions Gender { get; set; }
+
         public string ContactNumber { get; set; }
+
         public DateTime Dob { get; set; }
+
         public string Address { get; set; }
+
         public long AadharNumber { get; set; }
+
         public string PanNumber { get; set; }
+
         [JsonConstructor]
         public CustomerViewModel(string name, string bankId)
         {

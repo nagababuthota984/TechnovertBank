@@ -7,8 +7,8 @@ namespace TechnovertBank.Services
 {
     public class TransactionService : ITransactionService
     {
-        private BankStorageContext dbContext;
-        private IMapper _mapper;
+        private readonly BankStorageContext dbContext;
+        private readonly IMapper _mapper;
         public TransactionService(BankStorageContext context, IMapper mapper)
         {
             dbContext = context;

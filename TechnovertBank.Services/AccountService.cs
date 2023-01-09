@@ -1,5 +1,4 @@
-﻿
-using AutoMapper;
+﻿using AutoMapper;
 using System.Collections.Generic;
 using System.Linq;
 using TechnovertBank.Data;
@@ -9,41 +8,34 @@ namespace TechnovertBank.Services
 {
     public class AccountService : IAccountService
     {
-        private ITransactionService transService;
-        private BankStorageContext dbContext;
-        private IMapper mapper;
-        public AccountService(ITransactionService transactionService, BankStorageContext context, IMapper mapperObject)
+        private readonly ITransactionService transService;
+        private readonly BankStorageContext dbContext;
+        private readonly IMapper mapper;
+
+        #region Constructor
+		public AccountService(ITransactionService transactionService, BankStorageContext context, IMapper mapper)
         {
-            transService = transactionService;
+            this.transService = transactionService;
             dbContext = context;
-            mapper = mapperObject;
-        }
+            this.mapper = mapper;
+        } 
+
+	    #endregion
+
         public bool IsValidCustomer(string userName, string password)
         {
             var acc = dbContext.Accounts.FirstOrDefault(acc => acc.Username.Equals(userName) && acc.Password.Equals(password) && acc.Status == (int)AccountStatus.Active);
-            if (acc == null)
-                return false;
-            else
-            {
-                InitializeSessionContext(acc);
-                return true;
-            }
+            if (acc == null) return false;
+            InitializeSessionContext(acc);
+            return true;
         }
-        private void InitializeSessionContext(Account acc)
+
+        private void InitializeSessionContext(Account loggedInAccount)
         {
-            SessionContext.Account = acc;
-            SessionContext.Bank = mapper.Map<Bank>(dbContext.Banks.FirstOrDefault(b => b.BankId.Equals(acc.BankId)));
+            SessionContext.Account = loggedInAccount;
+            SessionContext.Bank = mapper.Map<Bank>(dbContext.Banks.FirstOrDefault(b => b.BankId.Equals(loggedInAccount.BankId)));
         }
-        public Account GetAccountByAccNumber(long accNumber)
-        {
-            return dbContext.Accounts.FirstOrDefault(ac => ac.AccountNumber.Equals(accNumber));
-           
-        }
-        public Account GetAccountById(string accountId)
-        {
-            return dbContext.Accounts.FirstOrDefault(ac => ac.AccountId.Equals(accountId));
-            
-        }
+        
         public void DepositAmount(Account userAccount, decimal amount, Currency currency)
         {
             amount *= currency.ExchangeRate;
@@ -51,12 +43,14 @@ namespace TechnovertBank.Services
             transService.CreateTransaction(userAccount, TransactionType.Credit, amount, currency.Name);
             dbContext.SaveChanges();
         }
+        
         public void WithdrawAmount(Account userAccount, decimal amount)
         {
             userAccount.Balance -= amount;
             transService.CreateTransaction(userAccount, TransactionType.Debit, amount, "INR");//SessionContext.Bank.DefaultCurrencyName);
             dbContext.SaveChanges();
         }
+        
         public void TransferAmount(Account senderAccount, Bank senderBank, Account receiverAccount, decimal amount, ModeOfTransferOptions mode)
         {
 
@@ -68,6 +62,7 @@ namespace TechnovertBank.Services
             transService.CreateTransferTransaction(senderAccount, receiverAccount, amount, mode, "INR");// SessionContext.Bank.DefaultCurrencyName);
             dbContext.SaveChanges();
         }
+        
         public void ApplyTransferCharges(Account senderAccount, Bank senderBank, string receiverBankId, decimal amount, ModeOfTransferOptions mode, string currencyName)
         {
             decimal charges;
@@ -85,10 +80,6 @@ namespace TechnovertBank.Services
             dbContext.SaveChanges();
         }
 
-        public List<Account> GetAllAccounts()
-        {
-            return mapper.Map<List<Account>>(dbContext.Accounts);
-        }
         public void UpdateAccount(Customer updatedCustomer)
         {
             Customer originalCustomer = dbContext.Customers.FirstOrDefault(cus=>cus.AadharNumber==updatedCustomer.AadharNumber);
@@ -101,10 +92,31 @@ namespace TechnovertBank.Services
 
         }
 
+        #region Getters
+
+		public List<Account> GetAllAccounts()
+        {
+            return mapper.Map<List<Account>>(dbContext.Accounts);
+        }
+        
+        public Account GetAccountByAccNumber(long accNumber)
+        {
+            return dbContext.Accounts.FirstOrDefault(ac => ac.AccountNumber.Equals(accNumber));
+           
+        }
+        
         public Customer GetCustomerById(string accountId)
         {
             return dbContext.Customers.FirstOrDefault(cust => cust.CustomerId.Equals(accountId));
         }
+        
+        public Account GetAccountById(string accountId)
+        {
+            return dbContext.Accounts.FirstOrDefault(ac => ac.AccountId.Equals(accountId));
+            
+        } 
+
+	    #endregion
     }
 }
 

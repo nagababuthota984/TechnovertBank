@@ -6,18 +6,26 @@ namespace TechnovertBank.Models
     {
         #region Properties
         public string BankId { get; set; }
+
         public string Bankname { get; set; }
+
         public string Branch { get; set; }
+
         public string Ifsc { get; set; }
+
         public decimal SelfRtgs { get; set; }
+
         public decimal SelfImps { get; set; }
+
         public decimal OtherRtgs { get; set; }
+
         public decimal OtherImps { get; set; }
+
         public decimal Funds { get; set; }
+
         public string DefaultCurrencyName { get; set; }
-
-
         #endregion
+
         public BankViewModel()
         {
 

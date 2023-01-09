@@ -5,16 +5,27 @@ namespace TechnovertBank.Models
     public partial class TransactionViewModel
     {
         public string TransId { get; set; }
+
         public string AccountId { get; set; }
+
         public string Sendername { get; set; }
+
         public string ReceiverAccountId { get; set; }
+
         public DateTime TransactionOn { get; set; }
+
         public decimal TransactionAmount { get; set; }
+
         public int ModeOfTransfer { get; set; }
+
         public string Currency { get; set; }
+
         public TransactionType TransactionType { get; set; }
+
         public string BankId { get; set; }
+
         public string OtherPartyBankId { get; set; }
+
         public bool IsBankTransaction { get; set; }
             
         
@@ -59,7 +70,7 @@ namespace TechnovertBank.Models
             this.IsBankTransaction = true;
 
         }
-        //transaction generator for one account to other account transfers.
+        //transaction generator for account-to-account transfers.
         public TransactionViewModel(AccountViewModel userAccount, AccountViewModel receiverAccount, TransactionType transfer, decimal transactionAmount, string currencyName, ModeOfTransferOptions mode)
         {
             DateTime timestamp = DateTime.Now;
