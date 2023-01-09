@@ -15,7 +15,7 @@ namespace TechnovertBank.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize(Roles = UserRoles.Admin)]
+    
     public class AdminController : ControllerBase
     {
         private readonly IAccountService _accountService;
